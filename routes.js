@@ -11,7 +11,12 @@ const router = new express.Router();
 
 router.get("/", async function(req, res, next) {
   try {
-    const customers = await Customer.all();
+    let customers;
+    if (req.query.searchString) {
+      customers = await Customer.searchCustomers(req.query.searchString)
+    } else {
+      customers = await Customer.all();
+    }
     return res.render("customer_list.html", { customers });
   } catch (err) {
     return next(err);
@@ -41,6 +46,16 @@ router.post("/add/", async function(req, res, next) {
     await customer.save();
 
     return res.redirect(`/${customer.id}/`);
+  } catch (err) {
+    return next(err);
+  }
+});
+
+router.get("/top10", async function(req, res, next) {
+  try {
+    const top10 = await Customer.getTop10Customers();
+    console.log(top10.rows)
+    return res.render("customers_top10.html", { top10 });
   } catch (err) {
     return next(err);
   }
@@ -88,6 +103,8 @@ router.post("/:id/edit/", async function(req, res, next) {
     return next(err);
   }
 });
+
+
 
 /** Handle adding a new reservation. */
 
